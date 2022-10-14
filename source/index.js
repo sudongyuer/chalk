@@ -1,13 +1,11 @@
-import ansiStyles from 'ansi-styles';
-import supportsColor from 'supports-color';
-import {
+import ansiStyles from '#ansi-styles';
+import supportsColor from '#supports-color';
+import { // eslint-disable-line import/order
 	stringReplaceAll,
 	stringEncaseCRLFWithFirstIndex,
-} from './util.js';
-import template from './templates.js';
+} from './utilities.js';
 
 const {stdout: stdoutColor, stderr: stderrColor} = supportsColor;
-const {isArray} = Array;
 
 const GENERATOR = Symbol('GENERATOR');
 const STYLER = Symbol('STYLER');
@@ -41,17 +39,12 @@ export class Chalk {
 }
 
 const chalkFactory = options => {
-	const chalk = {};
+	const chalk = (...strings) => strings.join(' ');
 	applyOptions(chalk, options);
 
-	chalk.template = (...arguments_) => chalkTag(chalk.template, ...arguments_);
-
 	Object.setPrototypeOf(chalk, createChalk.prototype);
-	Object.setPrototypeOf(chalk.template, chalk);
 
-	chalk.template.Chalk = Chalk;
-
-	return chalk.template;
+	return chalk;
 };
 
 function createChalk(options) {
@@ -157,16 +150,9 @@ const createStyler = (open, close, parent) => {
 };
 
 const createBuilder = (self, _styler, _isEmpty) => {
-	const builder = (...arguments_) => {
-		if (isArray(arguments_[0]) && isArray(arguments_[0].raw)) {
-			// Called as a template literal, for example: chalk.red`2 + 3 = {bold ${2+3}}`
-			return applyStyle(builder, chalkTag(builder, ...arguments_));
-		}
-
-		// Single argument is hot path, implicit coercion is faster than anything
-		// eslint-disable-next-line no-implicit-coercion
-		return applyStyle(builder, (arguments_.length === 1) ? ('' + arguments_[0]) : arguments_.join(' '));
-	};
+	// Single argument is hot path, implicit coercion is faster than anything
+	// eslint-disable-next-line no-implicit-coercion
+	const builder = (...arguments_) => applyStyle(builder, (arguments_.length === 1) ? ('' + arguments_[0]) : arguments_.join(' '));
 
 	// We alter the prototype because we must return a function, but there is
 	// no way to create a function with a different prototype
@@ -213,32 +199,23 @@ const applyStyle = (self, string) => {
 	return openAll + string + closeAll;
 };
 
-const chalkTag = (chalk, ...strings) => {
-	const [firstString] = strings;
-
-	if (!isArray(firstString) || !isArray(firstString.raw)) {
-		// If chalk() was called by itself or with a string,
-		// return the string itself as a string.
-		return strings.join(' ');
-	}
-
-	const arguments_ = strings.slice(1);
-	const parts = [firstString.raw[0]];
-
-	for (let i = 1; i < firstString.length; i++) {
-		parts.push(
-			String(arguments_[i - 1]).replace(/[{}\\]/g, '\\$&'),
-			String(firstString.raw[i]),
-		);
-	}
-
-	return template(chalk, parts.join(''));
-};
-
 Object.defineProperties(createChalk.prototype, styles);
 
 const chalk = createChalk();
 export const chalkStderr = createChalk({level: stderrColor ? stderrColor.level : 0});
+
+export {
+	modifierNames,
+	foregroundColorNames,
+	backgroundColorNames,
+	colorNames,
+
+	// TODO: Remove these aliases in the next major version
+	modifierNames as modifiers,
+	foregroundColorNames as foregroundColors,
+	backgroundColorNames as backgroundColors,
+	colorNames as colors,
+} from './vendor/ansi-styles/index.js';
 
 export {
 	stdoutColor as supportsColor,

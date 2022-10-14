@@ -1,80 +1,8 @@
-/**
-Basic foreground colors.
-
-[More colors here.](https://github.com/chalk/chalk/blob/main/readme.md#256-and-truecolor-color-support)
-*/
-export type ForegroundColor =
-	| 'black'
-	| 'red'
-	| 'green'
-	| 'yellow'
-	| 'blue'
-	| 'magenta'
-	| 'cyan'
-	| 'white'
-	| 'gray'
-	| 'grey'
-	| 'blackBright'
-	| 'redBright'
-	| 'greenBright'
-	| 'yellowBright'
-	| 'blueBright'
-	| 'magentaBright'
-	| 'cyanBright'
-	| 'whiteBright';
-
-/**
-Basic background colors.
-
-[More colors here.](https://github.com/chalk/chalk/blob/main/readme.md#256-and-truecolor-color-support)
-*/
-export type BackgroundColor =
-	| 'bgBlack'
-	| 'bgRed'
-	| 'bgGreen'
-	| 'bgYellow'
-	| 'bgBlue'
-	| 'bgMagenta'
-	| 'bgCyan'
-	| 'bgWhite'
-	| 'bgGray'
-	| 'bgGrey'
-	| 'bgBlackBright'
-	| 'bgRedBright'
-	| 'bgGreenBright'
-	| 'bgYellowBright'
-	| 'bgBlueBright'
-	| 'bgMagentaBright'
-	| 'bgCyanBright'
-	| 'bgWhiteBright';
-
-/**
-Basic colors.
-
-[More colors here.](https://github.com/chalk/chalk/blob/main/readme.md#256-and-truecolor-color-support)
-*/
-export type Color = ForegroundColor | BackgroundColor;
-
-export type Modifiers =
-	| 'reset'
-	| 'bold'
-	| 'dim'
-	| 'italic'
-	| 'underline'
-	| 'overline'
-	| 'inverse'
-	| 'hidden'
-	| 'strikethrough'
-	| 'visible';
-
-/**
-Levels:
-- `0` - All colors disabled.
-- `1` - Basic 16 colors support.
-- `2` - ANSI 256 colors support.
-- `3` - Truecolor 16 million colors support.
-*/
-export type ColorSupportLevel = 0 | 1 | 2 | 3;
+// TODO: Make it this when TS suports that.
+// import {ModifierName, ForegroundColor, BackgroundColor, ColorName} from '#ansi-styles';
+// import {ColorInfo, ColorSupportLevel} from '#supports-color';
+import {ModifierName, ForegroundColorName, BackgroundColorName, ColorName} from './vendor/ansi-styles/index.js';
+import {ColorInfo, ColorSupportLevel} from './vendor/supports-color/index.js';
 
 export interface Options {
 	/**
@@ -94,63 +22,11 @@ export interface Options {
 /**
 Return a new Chalk instance.
 */
-export const Chalk: new (options?: Options) => ChalkInstance;
+export const Chalk: new (options?: Options) => ChalkInstance; // eslint-disable-line @typescript-eslint/naming-convention
 
-/**
-Detect whether the terminal supports color.
-*/
-export interface ColorSupport {
-	/**
-	The color level used by Chalk.
-	*/
-	level: ColorSupportLevel;
-
-	/**
-	Return whether Chalk supports basic 16 colors.
-	*/
-	hasBasic: boolean;
-
-	/**
-	Return whether Chalk supports ANSI 256 colors.
-	*/
-	has256: boolean;
-
-	/**
-	Return whether Chalk supports Truecolor 16 million colors.
-	*/
-	has16m: boolean;
-}
-
-interface ChalkFunction {
-	/**
-	Use a template string.
-
-	@remarks Template literals are unsupported for nested calls (see [issue #341](https://github.com/chalk/chalk/issues/341))
-
-	@example
-	```
-	import chalk from 'chalk';
-
-	log(chalk`
-	CPU: {red ${cpu.totalPercent}%}
-	RAM: {green ${ram.used / ram.total * 100}%}
-	DISK: {rgb(255,131,0) ${disk.used / disk.total * 100}%}
-	`);
-	```
-
-	@example
-	```
-	import chalk from 'chalk';
-
-	log(chalk.red.bgBlack`2 + 3 = {bold ${2 + 3}}`)
-	```
-	*/
-	(text: TemplateStringsArray, ...placeholders: unknown[]): string;
-
+export interface ChalkInstance {
 	(...text: unknown[]): string;
-}
 
-export interface ChalkInstance extends ChalkFunction {
 	/**
 	The color support for Chalk.
 
@@ -166,6 +42,13 @@ export interface ChalkInstance extends ChalkFunction {
 
 	/**
 	Use RGB values to set text color.
+
+	@example
+	```
+	import chalk from 'chalk';
+
+	chalk.rgb(222, 173, 237);
+	```
 	*/
 	rgb: (red: number, green: number, blue: number) => this;
 
@@ -185,11 +68,25 @@ export interface ChalkInstance extends ChalkFunction {
 
 	/**
 	Use an [8-bit unsigned number](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit) to set text color.
+
+	@example
+	```
+	import chalk from 'chalk';
+
+	chalk.ansi256(201);
+	```
 	*/
 	ansi256: (index: number) => this;
 
 	/**
 	Use RGB values to set background color.
+
+	@example
+	```
+	import chalk from 'chalk';
+
+	chalk.bgRgb(222, 173, 237);
+	```
 	*/
 	bgRgb: (red: number, green: number, blue: number) => this;
 
@@ -209,6 +106,13 @@ export interface ChalkInstance extends ChalkFunction {
 
 	/**
 	Use a [8-bit unsigned number](https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit) to set background color.
+
+	@example
+	```
+	import chalk from 'chalk';
+
+	chalk.bgAnsi256(201);
+	```
 	*/
 	bgAnsi256: (index: number) => this;
 
@@ -330,11 +234,87 @@ Order doesn't matter, and later styles take precedent in case of a conflict.
 
 This simply means that `chalk.red.yellow.green` is equivalent to `chalk.green`.
 */
-declare const chalk: ChalkInstance & ChalkFunction;
+declare const chalk: ChalkInstance;
 
-export const supportsColor: ColorSupport | false;
+export const supportsColor: ColorInfo;
 
 export const chalkStderr: typeof chalk;
 export const supportsColorStderr: typeof supportsColor;
+
+export {
+	ModifierName, ForegroundColorName, BackgroundColorName, ColorName,
+	modifierNames, foregroundColorNames, backgroundColorNames, colorNames,
+// } from '#ansi-styles';
+} from './vendor/ansi-styles/index.js';
+
+export {
+	ColorInfo,
+	ColorSupport,
+	ColorSupportLevel,
+// } from '#supports-color';
+} from './vendor/supports-color/index.js';
+
+// TODO: Remove these aliases in the next major version
+/**
+@deprecated Use `ModifierName` instead.
+
+Basic modifier names.
+*/
+export type Modifiers = ModifierName;
+
+/**
+@deprecated Use `ForegroundColorName` instead.
+
+Basic foreground color names.
+
+[More colors here.](https://github.com/chalk/chalk/blob/main/readme.md#256-and-truecolor-color-support)
+*/
+export type ForegroundColor = ForegroundColorName;
+
+/**
+@deprecated Use `BackgroundColorName` instead.
+
+Basic background color names.
+
+[More colors here.](https://github.com/chalk/chalk/blob/main/readme.md#256-and-truecolor-color-support)
+*/
+export type BackgroundColor = BackgroundColorName;
+
+/**
+@deprecated Use `ColorName` instead.
+
+Basic color names. The combination of foreground and background color names.
+
+[More colors here.](https://github.com/chalk/chalk/blob/main/readme.md#256-and-truecolor-color-support)
+*/
+export type Color = ColorName;
+
+/**
+@deprecated Use `modifierNames` instead.
+
+Basic modifier names.
+*/
+export const modifiers: readonly Modifiers[];
+
+/**
+@deprecated Use `foregroundColorNames` instead.
+
+Basic foreground color names.
+*/
+export const foregroundColors: readonly ForegroundColor[];
+
+/**
+@deprecated Use `backgroundColorNames` instead.
+
+Basic background color names.
+*/
+export const backgroundColors: readonly BackgroundColor[];
+
+/**
+@deprecated Use `colorNames` instead.
+
+Basic color names. The combination of foreground and background color names.
+*/
+export const colors: readonly Color[];
 
 export default chalk;
